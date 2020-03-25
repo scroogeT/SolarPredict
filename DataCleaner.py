@@ -2,7 +2,7 @@ import pandas as pd
 # from pandas import ExcelWriter
 # from pandas import ExcelFile
 
-'''
+raw_files = [
     {
         'file_name': 'Type1 Data.xlsx',
         'sheet_columns': [
@@ -77,8 +77,6 @@ import pandas as pd
             },
         ]
     },
-    '''
-raw_files = [
     {
         'file_name': 'Type 4 Data.xlsx',
         'sheet_columns': [
@@ -121,7 +119,7 @@ my_columns = ['Date', 'Time', 'SolIrr', 'DaySumIrr', 'TmpMod',
               'TmpAmb', 'Wind', 'Pac', 'Pdc', 'DaySum']
 
 # Empty dataframe to contain all Readings
-master_readings = pd.DataFrame()
+# master_readings = pd.DataFrame()
 type_readings = pd.DataFrame()
 
 for file in raw_files:
@@ -130,7 +128,7 @@ for file in raw_files:
                            sheet_name=sheet['sheet_name'],
                            header=1,
                            usecols=sheet['cols'])
-        # Clean-up columns
+        # Clean-up column names
         df.columns = df.columns.str.replace('Pdc1', 'Pdc')
         df.columns = df.columns.str.replace('.1', '')
         df.columns = df.columns.str.replace('#', '')
@@ -142,14 +140,13 @@ for file in raw_files:
         df = df[my_columns]
 
         print(df.head())
-        # print('Empty Master: ' + type_readings)
 
-        if master_readings.empty or type_readings.empty:
-            master_readings = df.copy(deep=True)
+        if type_readings.empty:
+            #master_readings = df.copy(deep=True)
             type_readings = df.copy(deep=True)
             print('First Run !!')
         else:
-            master_readings = master_readings.append(df, ignore_index=True, sort=True)
+            #master_readings = master_readings.append(df, ignore_index=True, sort=True)
             type_readings = type_readings.append(df, ignore_index=True, sort=True)
 
         print('Global Readings: {}'.format(type_readings.shape))
@@ -162,6 +159,6 @@ for file in raw_files:
     # Clear readings for this type
     type_readings = type_readings.iloc[0:0]
 
-master_readings.to_csv(path_or_buf='flattened_data.csv', index=False)
-print("Flat data Columns")
-print(type_readings.head())
+#master_readings.to_csv(path_or_buf='flattened_data.csv', index=False)
+#print("Flat data Columns")
+#print(type_readings.head())
