@@ -3,6 +3,7 @@ from keras.optimizers import Adam
 from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
+import copy
 # Our self defined ML model
 import model as solarModel
 
@@ -24,11 +25,13 @@ def process_power_attributes(df, train, test):
 print("[INFO] constructing training/testing split...")
 (train, test) = train_test_split(df, test_size=0.25, random_state=42)
 
+testData = copy.deepcopy(test)
+
 '''
 find the largest Pdc in the training set and use it to scale our Pdcs to the range [0, 1] 
 (this will lead to better training and convergence)
 '''
-maxPdc = train["Pdc"].max()
+maxPdc = df["Pdc"].max()
 trainY = train["Pdc"] / maxPdc
 testY = test["Pdc"] / maxPdc
 
@@ -46,7 +49,7 @@ model.compile(loss="mean_absolute_percentage_error", optimizer=opt)
 
 # train the model
 print("[INFO] training model...")
-model.fit(trainX, trainY, validation_data=(testX, testY), epochs=200, batch_size=8)
+model.fit(trainX, trainY, validation_data=(testX, testY), epochs=5, batch_size=10)
 
 # make predictions on the testing data
 print("[INFO] predicting PDC values...")
@@ -64,6 +67,13 @@ absPercentDiff = np.abs(percentDiff)
 mean = np.mean(absPercentDiff)
 std = np.std(absPercentDiff)
 
+# Save to Predicted Output file
+print("[INFO] Saving Predictions to output file...")
+predPdc = preds * df['Pdc'].max()
+testData['Pdc_pred'] = predPdc
+testData['Absolute_Percent_diff'] = absPercentDiff
+testData.to_csv('model_predicted_output.csv', index=False)
+
 # finally, show some statistics on our model
-print("[INFO] avg. PDC: {}, std PDC: {}".format(df["Pdc"].mean(), df["Pdc"].std()))
+print("[INFO] avg. PDC: {}, std dev. PDC: {}".format(df["Pdc"].mean(), df["Pdc"].std()))
 print("[INFO] mean: {:.2f}%, std: {:.2f}%".format(mean, std))
